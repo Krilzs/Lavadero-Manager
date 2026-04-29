@@ -1,0 +1,40 @@
+@import "tailwindcss";
+@import "@fontsource/outfit";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #10b981;
+  --color-primary-dark: #059669;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--color-background)] text-slate-900 antialiased;
+  }
+  
+  .dark {
+    --color-background: #0f172a;
+    --color-surface: #1e293b;
+  }
+  
+  .dark body {
+    @apply bg-[var(--color-background)] text-slate-100;
+  }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
