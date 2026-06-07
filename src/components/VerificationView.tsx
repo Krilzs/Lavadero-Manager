@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useLaundryStore } from '../store';
-import { motion } from 'framer-motion';
-import { CheckCircle2, AlertCircle, Plus, Minus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2, AlertCircle, Plus, Minus, MessageCircle, Send } from 'lucide-react';
 import { itemIcons } from './ActiveSession';
 
 interface VerificationViewProps {
@@ -9,22 +10,50 @@ interface VerificationViewProps {
 }
 
 export default function VerificationView({ sessionId, onComplete }: VerificationViewProps) {
-  const { sessions, verifyReturnedItem, completeVerification } = useLaundryStore();
+  const { sessions, verifyReturnedItem, completeVerification, whatsappNumber, setWhatsappNumber } = useLaundryStore();
+  const [showNumberGuard, setShowNumberGuard] = useState(false);
+  const [tempNumber, setTempNumber] = useState(whatsappNumber);
 
   const session = sessions.find(s => s.id === sessionId);
 
   if (!session || session.status !== 'en_lavadero') return null;
 
-  // Filtrar los que realmente se enviaron
   const itemsSent = session.items.filter(item => item.sent_count > 0);
   const totalSent = itemsSent.reduce((acc, item) => acc + item.sent_count, 0);
   const totalReturned = itemsSent.reduce((acc, item) => acc + item.returned_count, 0);
 
   const isComplete = itemsSent.every(item => item.sent_count === item.returned_count);
+  const missingItems = itemsSent.filter(item => item.sent_count > item.returned_count);
 
   const handleFinish = () => {
     completeVerification(sessionId);
     onComplete();
+  };
+
+  const handleWhatsappReport = () => {
+    if (!whatsappNumber) {
+      setShowNumberGuard(true);
+      return;
+    }
+
+    const missingText = missingItems
+      .map(item => `- ${item.sent_count - item.returned_count} ${item.type}`)
+      .join('\n');
+
+    const message = `¡Hola! Acabo de verificar mi pedido de ropa y faltan algunas prendas:\n\n${missingText}\n\n¿Podrían revisarlo? ¡Gracias!`;
+    const encodedMessage = encodeURIComponent(message);
+    const cleanNumber = whatsappNumber.replace(/\D/g, '');
+    
+    window.open(`https://wa.me/${cleanNumber}?text=${encodedMessage}`, '_blank');
+  };
+
+  const saveNumberAndReport = () => {
+    if (tempNumber) {
+      setWhatsappNumber(tempNumber);
+      setShowNumberGuard(false);
+      // Pequeño delay para asegurar que el estado se actualizó (aunque con setWhatsappNumber de Zustand es casi inmediato)
+      setTimeout(handleWhatsappReport, 100);
+    }
   };
 
   return (
@@ -94,12 +123,59 @@ export default function VerificationView({ sessionId, onComplete }: Verification
         })}
       </div>
 
+      <AnimatePresence>
+        {!isComplete && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="mb-6 space-y-3"
+          >
+            {showNumberGuard ? (
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl border-2 border-emerald-500 shadow-lg">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-2">¡Casi listo! Ingresá el WhatsApp del lavadero:</p>
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    placeholder="Ej: +5491122334455"
+                    value={tempNumber}
+                    onChange={(e) => setTempNumber(e.target.value)}
+                    className="flex-1 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none"
+                    autoFocus
+                  />
+                  <button
+                    onClick={saveNumberAndReport}
+                    className="bg-emerald-500 text-white p-3 rounded-xl hover:bg-emerald-600 active:scale-95 transition-all"
+                  >
+                    <Send size={20} />
+                  </button>
+                </div>
+                <button 
+                  onClick={() => setShowNumberGuard(false)}
+                  className="text-xs text-slate-500 mt-2 hover:underline"
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleWhatsappReport}
+                className="w-full flex items-center justify-center gap-3 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-2 border-emerald-500/30 border-dashed py-4 rounded-2xl font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+              >
+                <MessageCircle size={20} />
+                Reportar faltantes por WhatsApp
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <button
         onClick={handleFinish}
         className={`w-full flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold shadow-lg transition-all active:scale-95 ${
           isComplete 
           ? 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)]' 
-          : 'bg-amber-500 text-white hover:bg-amber-600'
+          : 'bg-slate-900 dark:bg-slate-800 text-white hover:bg-slate-800'
         }`}
       >
         {isComplete ? (

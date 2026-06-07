@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Moon, Sun, WashingMachine, Info, Download } from 'lucide-react';
+import { X, Moon, Sun, WashingMachine, Info, Download, MessageCircle } from 'lucide-react';
 import { useLaundryStore } from '../store';
 
 interface SidebarProps {
@@ -10,7 +10,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose, onInstall, canInstall }: SidebarProps) {
-  const { theme, toggleTheme } = useLaundryStore();
+  const { theme, toggleTheme, whatsappNumber, setWhatsappNumber } = useLaundryStore();
 
   return (
     <AnimatePresence>
@@ -68,6 +68,23 @@ export default function Sidebar({ isOpen, onClose, onInstall, canInstall }: Side
                   </div>
                 </button>
               )}
+
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 flex flex-col gap-3">
+                <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200">
+                  <MessageCircle size={20} className="text-emerald-500" />
+                  WhatsApp Lavadero
+                </div>
+                <input
+                  type="tel"
+                  placeholder="Ej: +5491122334455"
+                  value={whatsappNumber}
+                  onChange={(e) => setWhatsappNumber(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                />
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  Incluye el código de país (ej: +54 para Argentina).
+                </p>
+              </div>
 
               <div className="mt-auto flex flex-col gap-2 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-400">
                 <div className="flex items-center gap-2 font-bold mb-1">

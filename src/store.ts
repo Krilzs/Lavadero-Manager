@@ -20,6 +20,8 @@ export interface LaundrySession {
 interface LaundryState {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
+  whatsappNumber: string;
+  setWhatsappNumber: (number: string) => void;
   sessions: LaundrySession[];
   createSession: () => string;
   updateItemCount: (sessionId: string, type: ClothingType, delta: number) => void;
@@ -49,6 +51,8 @@ export const useLaundryStore = create<LaundryState>()(
         else document.documentElement.classList.remove('dark');
         return { theme: newTheme };
       }),
+      whatsappNumber: '',
+      setWhatsappNumber: (number) => set({ whatsappNumber: number }),
       sessions: [],
       createSession: () => {
         const id = Date.now().toString();
