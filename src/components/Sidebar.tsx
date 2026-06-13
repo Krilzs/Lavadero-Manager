@@ -74,15 +74,40 @@ export default function Sidebar({ isOpen, onClose, onInstall, canInstall }: Side
                   <MessageCircle size={20} className="text-emerald-500" />
                   WhatsApp Lavadero
                 </div>
-                <input
-                  type="tel"
-                  placeholder="Ej: +5491122334455"
-                  value={whatsappNumber}
-                  onChange={(e) => setWhatsappNumber(e.target.value)}
-                  className="w-full p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-                />
-                <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                  Incluye el código de país (ej: +54 para Argentina).
+                
+                <div className="flex items-center gap-0 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus-within:ring-2 focus-within:ring-emerald-500 transition-all">
+                  <div className="flex items-center bg-slate-100 dark:bg-slate-800 px-3 py-3 border-r border-slate-200 dark:border-slate-700">
+                    <span className="text-slate-400 dark:text-slate-500 font-bold mr-1">+</span>
+                    <input
+                      type="number"
+                      placeholder="54"
+                      value={whatsappNumber.split(' ')[0]?.replace('+', '') || ''}
+                      onChange={(e) => {
+                        let newPrefix = e.target.value.replace(/\D/g, '');
+                        // Limitar a 3 dígitos
+                        if (newPrefix.length > 3) newPrefix = newPrefix.slice(0, 3);
+                        
+                        const numberPart = whatsappNumber.split(' ')[1] || '';
+                        setWhatsappNumber(newPrefix ? `+${newPrefix} ${numberPart}` : ` ${numberPart}`);
+                      }}
+                      className="w-12 bg-transparent text-slate-700 dark:text-slate-200 font-bold focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                  </div>
+                  <input
+                    type="tel"
+                    placeholder="Número local"
+                    value={whatsappNumber.split(' ')[1] || ''}
+                    onChange={(e) => {
+                      const prefixPart = whatsappNumber.split(' ')[0] || '+54';
+                      const newNumber = e.target.value.replace(/\D/g, '');
+                      setWhatsappNumber(`${prefixPart} ${newNumber}`);
+                    }}
+                    className="flex-1 p-3 bg-transparent text-slate-700 dark:text-slate-200 focus:outline-none"
+                  />
+                </div>
+                
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Código de país (ej: 54) y número (ej: 911223344). No incluyas el +.
                 </p>
               </div>
 

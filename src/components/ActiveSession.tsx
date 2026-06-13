@@ -18,7 +18,7 @@ interface ActiveSessionProps {
 }
 
 export default function ActiveSession({ sessionId }: ActiveSessionProps) {
-  const { sessions, updateItemCount, sendToLaundry, deleteSession } = useLaundryStore();
+  const { sessions, updateItemCount, sendToLaundry, deleteSession, whatsappNumber } = useLaundryStore();
   const [isSending, setIsSending] = useState(false);
   
   const session = sessions.find(s => s.id === sessionId);
@@ -31,8 +31,21 @@ export default function ActiveSession({ sessionId }: ActiveSessionProps) {
 
   const handleSend = () => {
     setIsSending(true);
+    
+    // Preparar mensaje de WhatsApp
+    const itemsWithCount = session.items.filter(item => item.sent_count > 0);
+    const itemsList = itemsWithCount.map(item => `- ${item.type}: ${item.sent_count}`).join('\n');
+    const message = `*Lista de prendas para el lavadero*\n\nHola! Envío el detalle del pedido:\n\n${itemsList}\n\n*Total:* ${totalItems} prendas.`;
+    
     setTimeout(() => {
       sendToLaundry(sessionId);
+      
+      // Si hay un número configurado, abrir WhatsApp
+      if (whatsappNumber) {
+        const cleanNumber = whatsappNumber.replace(/\D/g, '');
+        const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+      }
     }, 2500);
   };
 
